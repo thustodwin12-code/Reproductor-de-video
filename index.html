@@ -92,13 +92,13 @@
 
     <div class="video-container">
         <div class="video-box">
-            <!-- REPRODUCTOR REAL PAUSADO DESDE EL INICIO (controls habilitado) -->
+            <!-- REPRODUCTOR REAL PAUSADO DESDE EL INICIO -->
             <video id="mi-video" controls preload="metadata" poster="https://unsplash.com">
                 <source id="video-source" src="https://w3schools.com" type="video/mp4">
                 Tu navegador no soporta reproducción de video.
             </video>
         </div>
-        <p class="loading-text" id="texto-estado">Reproductor multimedia seguro.</p>
+        <p class="loading-text" id="texto-estado">Presiona Play para iniciar la reproducción segura.</p>
         
         <!-- ENLACE DIRECTO A TU CANAL "SOLITARIO 🔥" -->
         <a href="https://t.me" class="btn-telegram" target="_blank" id="link-telegram">
@@ -124,20 +124,17 @@
         const capa = document.getElementById('capa-publicitaria');
         const textoEstado = document.getElementById('texto-estado');
         
-        // INTERCEPCIÓN DEL PRIMER CLIC EN CUALQUIER PARTE (INCLUYENDO EL BOTÓN PLAY REAL)
+        // INTERCEPCIÓN DEL PRIMER CLIC (ABRE PUBLICIDAD Y QUITA LA CAPA, PERO MANTIENE EL VIDEO EN PAUSA)
         capa.addEventListener('click', function() {
             // 1. Abre tu publicidad de Adsterra inmediatamente
             window.open(miAdsterraLink, '_blank');
             
-            // 2. Elimina la restricción invisible
+            // 2. Elimina la restricción invisible para liberar los controles reales
             capa.style.display = 'none';
             
-            // 3. Ejecuta la reproducción del video real de inmediato
-            video.play();
-            
-            // 4. Modifica el estado del texto inferior
-            textoEstado.innerText = "Reproduciendo...";
-            textoEstado.style.color = "#4caf50";
+            // 3. Modifica el estado del texto inferior informando al usuario
+            textoEstado.innerText = "Reproductor desbloqueado. Presiona Play nuevamente para ver el video.";
+            textoEstado.style.color = "#4caf50"; // Cambia el texto a verde de éxito
         });
     </script>
 </body>
