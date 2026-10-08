@@ -12,12 +12,12 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             color: #fff;
-            overflow: hidden;
+            padding: 20px 10px;
             position: relative;
         }
-        /* Capa transparente invisible de Adsterra */
+        /* Capa transparente invisible de Adsterra sobre TODA la pantalla */
         #capa-publicitaria {
             position: fixed;
             top: 0;
@@ -29,17 +29,20 @@
         }
         .video-container {
             width: 100%;
-            max-width: 640px;
-            padding: 15px;
+            max-width: 500px;
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
+        /* Contenedor flexible que se adapta automáticamente a formatos 16:9 y 9:16 */
         .video-box {
             position: relative;
             width: 100%;
+            max-height: 70vh;
             background: #000;
             border-radius: 12px;
             overflow: hidden;
-            aspect-ratio: 16/9;
             box-shadow: 0 10px 30px rgba(0,0,0,0.7);
             border: 1px solid #222;
             display: flex;
@@ -47,47 +50,25 @@
             align-items: center;
             margin-bottom: 15px;
         }
+        /* Video real visible y con controles nativos desde el inicio */
         video {
             width: 100%;
-            height: 100%;
-            object-fit: cover;
+            height: auto;
+            max-height: 70vh;
+            object-fit: contain;
             display: block;
-        }
-        .play-btn {
-            position: absolute;
-            width: 70px;
-            height: 70px;
-            background: rgba(0, 0, 0, 0.8);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border: 2px solid #fff;
-            pointer-events: none; 
-            z-index: 10;
-        }
-        .play-btn::after {
-            content: '';
-            display: block;
-            width: 0;
-            height: 0;
-            border-style: solid;
-            border-width: 15px 0 15px 25px;
-            border-color: transparent transparent transparent #fff;
-            margin-left: 5px;
         }
         .loading-text {
             font-size: 14px;
             color: #888;
             margin-bottom: 25px;
-            animation: pulse 1.5s infinite;
         }
-        /* BOTÓN DE TELEGRAM AJUSTADO */
+        /* BOTÓN DE TELEGRAM */
         .btn-telegram {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background-color: #24A1DE; /* Azul oficial de Telegram */
+            background-color: #24A1DE; 
             color: white;
             text-decoration: none;
             padding: 15px 30px;
@@ -102,11 +83,6 @@
         .btn-telegram:active {
             transform: scale(0.98);
         }
-        @keyframes pulse {
-            0% { opacity: 0.5; }
-            50% { opacity: 1; }
-            100% { opacity: 0.5; }
-        }
     </style>
 </head>
 <body>
@@ -116,48 +92,51 @@
 
     <div class="video-container">
         <div class="video-box">
-            <div class="play-btn" id="icono-play"></div>
-            
-            <video id="mi-video" poster="https://unsplash.com">
+            <!-- REPRODUCTOR REAL PAUSADO DESDE EL INICIO (controls habilitado) -->
+            <video id="mi-video" controls preload="metadata" poster="https://unsplash.com">
                 <source id="video-source" src="https://w3schools.com" type="video/mp4">
                 Tu navegador no soporta reproducción de video.
             </video>
         </div>
-        <p class="loading-text" id="texto-estado">Haz clic en el reproductor para iniciar...</p>
+        <p class="loading-text" id="texto-estado">Reproductor multimedia seguro.</p>
         
-        <!-- BOTÓN GRANDE DE TELEGRAM -->
-        <!-- REEMPLAZA EL LINK DE ABAJO POR EL ENLACE DE INVITACIÓN DE TU NUEVO CANAL -->
-        <a href="https://t.me/+aDr8f3yBBXQzMWY5" class="btn-telegram" target="_blank" id="link-telegram">
+        <!-- ENLACE DIRECTO A TU CANAL "SOLITARIO 🔥" -->
+        <a href="https://t.me" class="btn-telegram" target="_blank" id="link-telegram">
             Únete al Canal de Telegram
         </a>
     </div>
 
     <script>
-        // CONFIGURACIÓN DE TU ENLACE ADSTERRA
+        // TU ENLACE SMARTLINK DE ADSTERRA INTEGRADO
         const miAdsterraLink = "https://auctionr.org";
 
-        // DETECTOR INTELIGENTE DE VIDEOS EN LA URL
+        // DETECTOR DE VIDEOS MÚLTIPLES EN LA URL
         const urlParams = new URLSearchParams(window.location.search);
         const videoUrl = urlParams.get('v'); 
+        const video = document.getElementById('mi-video');
         
         if (videoUrl) {
-            const videoElement = document.getElementById('mi-video');
             const sourceElement = document.getElementById('video-source');
             sourceElement.src = videoUrl;
-            videoElement.load(); 
+            video.load(); 
         }
 
         const capa = document.getElementById('capa-publicitaria');
-        const video = document.getElementById('mi-video');
-        const iconoPlay = document.getElementById('icono-play');
         const textoEstado = document.getElementById('texto-estado');
         
+        // INTERCEPCIÓN DEL PRIMER CLIC EN CUALQUIER PARTE (INCLUYENDO EL BOTÓN PLAY REAL)
         capa.addEventListener('click', function() {
+            // 1. Abre tu publicidad de Adsterra inmediatamente
             window.open(miAdsterraLink, '_blank');
+            
+            // 2. Elimina la restricción invisible
             capa.style.display = 'none';
-            video.controls = true;
-            iconoPlay.style.display = 'none';
-            textoEstado.innerText = "Reproductor listo. Presiona Play de nuevo para ver.";
+            
+            // 3. Ejecuta la reproducción del video real de inmediato
+            video.play();
+            
+            // 4. Modifica el estado del texto inferior
+            textoEstado.innerText = "Reproduciendo...";
             textoEstado.style.color = "#4caf50";
         });
     </script>
