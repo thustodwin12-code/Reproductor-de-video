@@ -27,7 +27,7 @@
         .video-box {
             position: relative;
             width: 100%;
-            height: 280px; /* Altura fija estándar para el diseño inicial */
+            max-height: 70vh;
             background: #000;
             border-radius: 12px;
             overflow: hidden;
@@ -35,62 +35,35 @@
             border: 1px solid #222;
             margin-bottom: 15px;
         }
-        
-        /* REPRODUCCIÓN REAL: Oculto por defecto para evitar que se pinche o inicie solo */
         video {
             width: 100%;
-            height: 100%;
+            height: auto;
+            max-height: 70vh;
             object-fit: contain;
-            display: none; 
+            display: block;
         }
 
-        /* REPRODUCTOR FALSO DE PORTADA: Esto es lo que ve el usuario al principio */
-        #reproductor-falso {
+        /* CAPA DE CONTROL TOTAL INICIAL */
+        #capa-interactiva {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            /* REEMPLAZA ESTA URL POR LA IMAGEN DE TU VIDEO */
-            background-image: url('https://unsplash.com');
-            background-size: cover;
-            background-position: center;
+            z-index: 30;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 15px;
-            z-index: 30;
         }
 
-        /* Botón falso de silenciar arriba a la derecha */
-        .btn-silenciar-falso {
-            align-self: flex-end;
-            background: rgba(0, 0, 0, 0.6);
-            border: none;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        /* Botón de Play Gigante en el Centro */
-        .bloque-play-centro {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            cursor: pointer;
-            width: 100%;
-            height: 60%; /* Ocupa gran parte de la pantalla para capturar el clic */
+        /* Botón de Play Falso Gigante en el centro */
+        .zona-play-falso {
+            flex-grow: 1;
             display: flex;
             justify-content: center;
             align-items: center;
+            cursor: pointer;
         }
-
         .circulo-play {
             width: 75px;
             height: 75px;
@@ -102,7 +75,7 @@
             box-shadow: 0 0 25px rgba(36, 161, 222, 0.7);
             transition: transform 0.2s;
         }
-        .bloque-play-centro:hover .circulo-play {
+        .zona-play-falso:hover .circulo-play {
             transform: scale(1.08);
         }
         .icono-play {
@@ -114,19 +87,34 @@
             margin-left: 6px;
         }
 
-        /* Barra inferior falsa que imita controles de video */
+        /* BARRA DE CONTROLES FALSA (Imita perfectamente un reproductor móvil) */
         .barra-controles-falsa {
+            background: linear-gradient(transparent, rgba(0,0,0,0.85));
+            height: 48px;
             width: 100%;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 3px;
-            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
         }
-        .progreso-falso {
-            width: 0%;
-            height: 100%;
-            background: #24A1DE;
-            border-radius: 3px;
+        .controles-izquierda, .controles-derecha {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .btn-control-falso {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .linea-tiempo-falsa {
+            flex-grow: 1;
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+            margin: 0 15px;
+            border-radius: 20px;
         }
 
         .loading-text {
@@ -154,35 +142,42 @@
 <body>
 
     <div class="video-container">
-        <div class="video-box" id="contenedor-principal">
+        <div class="video-box">
             
-            <!-- REPRODUCTOR FALSO DE ENTRADA -->
-            <div id="reproductor-falso">
-                <!-- Botón de silencio interactivo independiente -->
-                <button class="btn-silenciar-falso" id="mute-falso">
-                    🔊 <span id="txt-mute">Silenciar</span>
-                </button>
-
-                <!-- Zona central de play que abarca casi todo el video -->
-                <div class="bloque-play-centro" id="trigger-adsterra">
+            <!-- INTERFAZ FALSA INICIAL -->
+            <div id="capa-interactiva">
+                <!-- Al presionar el centro activa Adsterra -->
+                <div class="zona-play-falso" id="play-centro-falso">
                     <div class="circulo-play">
                         <div class="icono-play"></div>
                     </div>
                 </div>
 
-                <!-- Simulación de barra de reproducción en el fondo -->
+                <!-- Barra inferior simulada -->
                 <div class="barra-controles-falsa">
-                    <div class="progreso-falso"></div>
+                    <div class="controles-izquierda">
+                        <!-- Play de la esquina inferior que también activa Adsterra -->
+                        <button class="btn-control-falso" id="play-esquina-falso">▶</button>
+                        <span style="font-size: 12px; color: #ccc;">0:00 / 1:45</span>
+                    </div>
+                    
+                    <div class="linea-tiempo-falsa"></div>
+                    
+                    <div class="controles-derecha">
+                        <!-- MANDO DE SILENCIAR REAL Y FUNCIONAL -->
+                        <button class="btn-control-falso" id="btn-silenciar-real">🔊</button>
+                        <button class="btn-control-falso">⛶</button>
+                    </div>
                 </div>
             </div>
 
-            <!-- REPRODUCTOR REAL (Oculto y pausado de fábrica) -->
-            <video id="mi-video" preload="metadata">
+            <!-- REPRODUCTOR REAL (Inicia sin controles nativos y pausado) -->
+            <video id="mi-video" preload="metadata" poster="https://unsplash.com">
                 <source id="video-source" src="https://w3schools.com" type="video/mp4">
                 Tu navegador no soporta reproducción de video.
             </video>
         </div>
-        <p class="loading-text" id="texto-estado">Presiona el botón de Play para iniciar el video.</p>
+        <p class="loading-text" id="texto-estado">Presiona Play para desbloquear el reproductor de video.</p>
         
         <a href="https://t.me" class="btn-telegram" target="_blank">
             Únete al Canal de Telegram
@@ -192,7 +187,6 @@
     <script>
         const miAdsterraLink = "https://auctionr.org";
 
-        // Parámetros de URL para videos dinámicos
         const urlParams = new URLSearchParams(window.location.search);
         let videoUrl = urlParams.get('v'); 
         const video = document.getElementById('mi-video');
@@ -205,46 +199,42 @@
             video.load(); 
         }
 
-        const falsoReproductor = document.getElementById('reproductor-falso');
-        const triggerPlay = document.getElementById('trigger-adsterra');
-        const muteFalso = document.getElementById('mute-falso');
-        const txtMute = document.getElementById('txt-mute');
-        const contenedor = document.getElementById('contenedor-principal');
+        const capaInteractiva = document.getElementById('capa-interactiva');
+        const playCentro = document.getElementById('play-centro-falso');
+        const playEsquina = document.getElementById('play-esquina-falso');
+        const btnSilenciar = document.getElementById('btn-silenciar-real');
         const textoEstado = document.getElementById('texto-estado');
         
-        // Estado de audio inicial elegido por el usuario
-        let videoMuted = false;
+        // Asegurar que el video esté pausado por defecto
+        video.pause();
 
-        // Acción del botón de silenciar falso (No abre publicidad)
-        muteFalso.addEventListener('click', function(e) {
-            e.stopPropagation(); // Evita que se active el Play al tocar aquí
-            videoMuted = !videoMuted;
-            txtMute.innerText = videoMuted ? "Activar Sonido" : "Silenciar";
-            muteFalso.innerHTML = videoMuted ? "🔇 <span id='txt-mute'>Activar Sonido</span>" : "🔊 <span id='txt-mute'>Silenciar</span>";
+        // 1. MANDO DE SILENCIAR REAL (Funciona antes de abrir la publicidad)
+        btnSilenciar.addEventListener('click', function(e) {
+            e.stopPropagation(); // Evita que se abra el anuncio al silenciar
+            video.muted = !video.muted;
+            btnSilenciar.innerText = video.muted ? "🔇" : "🔊";
         });
 
-        // ACCIÓN PRINCIPAL AL PRESIONAR EL PLAY FALSO
-        triggerPlay.addEventListener('click', function() {
-            // 1. Forzamos la apertura de Adsterra en una pestaña limpia
+        // FUNCIÓN PARA EJECUTAR PUBLICIDAD Y DEJAR EL VIDEO EN ESPERA
+        function ejecutarAdsterra() {
+            // Abre Adsterra en pestaña nueva
             window.open(miAdsterraLink, '_blank');
             
-            // 2. Destruimos la interfaz falsa por completo
-            falsoReproductor.style.display = 'none';
+            // Destruye la capa falsa por completo
+            capaInteractiva.style.display = 'none';
             
-            // 3. Modificamos el contenedor para adaptarlo al reproductor real
-            contenedor.style.height = "auto";
-            
-            // 4. Mostramos el reproductor real con sus controles nativos oficiales
-            video.style.display = 'block';
+            // Activa los controles nativos reales del navegador
             video.setAttribute('controls', 'controls');
             
-            // 5. Aplicamos la configuración de audio que eligió el usuario en la portada
-            video.muted = videoMuted;
+            // El video se mantiene estrictamente pausado
+            video.pause(); 
             
-            // 6. Iniciamos la reproducción únicamente en este instante
-            video.play();
-            textoEstado.innerText = "Reproduciendo video de forma segura.";
-        });
+            textoEstado.innerText = "Reproductor desbloqueado. Presione el botón de Play real para reproducir.";
+        }
+
+        // Vincular ambos botones de Play falsos a la función publicitaria
+        playCentro.addEventListener('click', ejecutarAdsterra);
+        playEsquina.addEventListener('click', ejecutarAdsterra);
     </script>
 </body>
 </html>
