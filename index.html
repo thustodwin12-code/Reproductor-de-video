@@ -24,7 +24,6 @@
             flex-direction: column;
             align-items: center;
         }
-        /* Contenedor del video */
         .video-box {
             position: relative;
             width: 100%;
@@ -46,24 +45,30 @@
             object-fit: contain;
             display: block;
         }
-        /* CAPA GIGANTE: Ocupa todo el reproductor y captura el clic sin dejar ver nada atrás */
-        #capa-interactiva {
+        
+        /* ESCUDO INVISIBLE: Bloquea el centro del video y el botón play nativo, 
+           pero deja libre la zona del botón de silenciar (esquina inferior derecha) */
+        #escudo-clickjacking {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
             z-index: 20;
-            background: rgba(0, 0, 0, 0.1); /* Ligera sombra sobre el poster */
+            cursor: pointer;
+            /* Recortamos el área del escudo usando clip-path para dejar libre 
+               el 30% inferior derecho de la barra de controles (donde está el volumen) */
+            clip-path: polygon(0% 0%, 100% 0%, 100% 85%, 70% 85%, 70% 100%, 0% 100%);
         }
-        /* El círculo visual del botón de Play */
+
+        /* Botón de Play flotante centrado */
         .circulo-play {
-            width: 80px;
-            height: 80px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 75px;
+            height: 75px;
             background: rgba(36, 161, 222, 0.95);
             border-radius: 50%;
             display: flex;
@@ -71,18 +76,18 @@
             align-items: center;
             box-shadow: 0 0 25px rgba(36, 161, 222, 0.7);
             transition: transform 0.2s;
+            pointer-events: none; /* Deja pasar el clic hacia el escudo */
         }
-        #capa-interactiva:hover .circulo-play {
-            transform: scale(1.1);
+        #escudo-clickjacking:hover .circulo-play {
+            transform: translate(-50%, -50%) scale(1.08);
         }
-        /* Triángulo clásico de Play */
         .icono-play {
             width: 0;
             height: 0;
-            border-top: 15px solid transparent;
-            border-bottom: 15px solid transparent;
-            border-left: 25px solid white;
-            margin-left: 8px;
+            border-top: 14px solid transparent;
+            border-bottom: 14px solid transparent;
+            border-left: 22px solid white;
+            margin-left: 6px;
         }
         .loading-text {
             font-size: 14px;
@@ -103,10 +108,6 @@
             width: 100%;
             max-width: 320px;
             box-shadow: 0 5px 15px rgba(36, 161, 222, 0.4);
-            transition: background 0.2s, transform 0.2s;
-        }
-        .btn-telegram:active {
-            transform: scale(0.98);
         }
     </style>
 </head>
@@ -114,20 +115,21 @@
 
     <div class="video-container">
         <div class="video-box">
-            <!-- Capa gigante invisible con el botón centrado. Absorbe el 100% de los clics en el recuadro -->
-            <div id="capa-interactiva">
+            
+            <!-- Capa protectora con el botón de Play integrado -->
+            <div id="escudo-clickjacking">
                 <div class="circulo-play">
                     <div class="icono-play"></div>
                 </div>
             </div>
 
-            <!-- REPRODUCTOR REAL (Inicia SIN los controles nativos para que no se vean atrás) -->
-            <video id="mi-video" preload="metadata" poster="https://unsplash.com">
+            <!-- REPRODUCTOR CON CONTROLES ACTIVOS DESDE EL INICIO -->
+            <video id="mi-video" controls preload="metadata" poster="https://unsplash.com">
                 <source id="video-source" src="https://w3schools.com" type="video/mp4">
                 Tu navegador no soporta reproducción de video.
             </video>
         </div>
-        <p class="loading-text" id="texto-estado">Presiona en cualquier parte del reproductor para iniciar el video.</p>
+        <p class="loading-text" id="texto-estado">Presiona Play para iniciar el video.</p>
         
         <a href="https://t.me" class="btn-telegram" target="_blank" id="link-telegram">
             Únete al Canal de Telegram
@@ -135,10 +137,9 @@
     </div>
 
     <script>
-        // TU ENLACE SMARTLINK DE ADSTERRA
         const miAdsterraLink = "https://auctionr.org";
 
-        // DETECTOR DE VIDEOS MÚLTIPLES EN LA URL (?v=ENLACE)
+        // Selector de video dinámico
         const urlParams = new URLSearchParams(window.location.search);
         let videoUrl = urlParams.get('v'); 
         const video = document.getElementById('mi-video');
@@ -151,22 +152,22 @@
             video.load(); 
         }
 
-        const capaInteractiva = document.getElementById('capa-interactiva');
+        const escudo = document.getElementById('escudo-clickjacking');
         const textoEstado = document.getElementById('texto-estado');
         
-        // MANEJO DEL CLIC SEGURO
-        capaInteractiva.addEventListener('click', function() {
-            // 1. Abrimos tu SmartLink en una pestaña nueva limpia (Se salta el bloqueo de FB)
+        // El video permanece pausado estrictamente hasta ejecutar la función
+        video.pause();
+
+        // CAPTURA DEL CLIC SEGURO
+        escudo.addEventListener('click', function(e) {
+            // 1. Abre el SmartLink de Adsterra inmediatamente en pestaña nueva
             window.open(miAdsterraLink, '_blank');
             
-            // 2. Le devolvemos los controles nativos al reproductor para que el usuario pueda usarlo
-            video.setAttribute('controls', 'controls');
-            
-            // 3. Reproducimos el video de inmediato en la pestaña actual
+            // 2. Arranca el video en la pestaña actual
             video.play();
             
-            // 4. Eliminamos por completo la capa para que no estorbe la reproducción
-            capaInteractiva.style.display = 'none';
+            // 3. Destruye el escudo para liberar completamente el reproductor original
+            escudo.style.display = 'none';
             textoEstado.innerText = "Reproduciendo video de forma segura.";
         });
     </script>
