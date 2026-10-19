@@ -15,17 +15,6 @@
             min-height: 100vh;
             color: #fff;
             padding: 20px 10px;
-            position: relative;
-        }
-        /* Capa transparente invisible sobre TODA la pantalla */
-        #capa-publicitaria {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 9999;
-            cursor: pointer;
         }
         .video-container {
             width: 100%;
@@ -35,7 +24,7 @@
             flex-direction: column;
             align-items: center;
         }
-        /* Contenedor flexible que se adapta automáticamente a formatos 16:9 y 9:16 */
+        /* Contenedor del video con posición relativa */
         .video-box {
             position: relative;
             width: 100%;
@@ -50,7 +39,6 @@
             align-items: center;
             margin-bottom: 15px;
         }
-        /* Video real visible */
         video {
             width: 100%;
             height: auto;
@@ -58,12 +46,42 @@
             object-fit: contain;
             display: block;
         }
+        /* BOTÓN DE PLAY VISIBLE Y ATRACTIVO */
+        #boton-play-falso {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            background: rgba(36, 161, 222, 0.9);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(36, 161, 222, 0.6);
+            transition: transform 0.2s, background 0.2s;
+            z-index: 10;
+        }
+        #boton-play-falso:hover {
+            transform: translate(-50%, -50%) scale(1.1);
+            background: rgba(36, 161, 222, 1);
+        }
+        /* Icono de triángulo de Play clásico hecho con CSS */
+        .icono-play {
+            width: 0;
+            height: 0;
+            border-top: 15px solid transparent;
+            border-bottom: 15px solid transparent;
+            border-left: 25px solid white;
+            margin-left: 8px;
+        }
         .loading-text {
             font-size: 14px;
             color: #888;
             margin-bottom: 25px;
         }
-        /* BOTÓN DE TELEGRAM */
         .btn-telegram {
             display: inline-flex;
             align-items: center;
@@ -87,27 +105,28 @@
 </head>
 <body>
 
-    <!-- Esta capa intercepta el primer clic para ejecutar la inversión de pestañas -->
-    <div id="capa-publicitaria"></div>
-
     <div class="video-container">
         <div class="video-box">
-            <!-- REPRODUCTOR REAL PAUSADO DESDE EL INICIO -->
+            <!-- Botón de Play superpuesto -->
+            <div id="boton-play-falso">
+                <div class="icono-play"></div>
+            </div>
+
+            <!-- REPRODUCTOR REAL -->
             <video id="mi-video" controls preload="metadata" poster="https://unsplash.com">
                 <source id="video-source" src="https://w3schools.com" type="video/mp4">
                 Tu navegador no soporta reproducción de video.
             </video>
         </div>
-        <p class="loading-text" id="texto-estado">Presiona en cualquier parte del reproductor para ver el video.</p>
+        <p class="loading-text" id="texto-estado">Presiona el botón de Play para iniciar el video.</p>
         
-        <!-- ENLACE DIRECTO A TU CANAL -->
         <a href="https://t.me" class="btn-telegram" target="_blank" id="link-telegram">
             Únete al Canal de Telegram
         </a>
     </div>
 
     <script>
-        // TU ENLACE SMARTLINK DE ADSTERRA INTEGRADO
+        // TU ENLACE SMARTLINK DE ADSTERRA
         const miAdsterraLink = "https://auctionr.org";
 
         // DETECTOR DE VIDEOS MÚLTIPLES EN LA URL (?v=ENLACE)
@@ -115,32 +134,28 @@
         let videoUrl = urlParams.get('v'); 
         const video = document.getElementById('mi-video');
         
-        // Si no detecta variable externa, usa el video por defecto de w3schools que tenías puesto
         if (!videoUrl) {
-            videoUrl = "https://w3schools.com";
+            videoUrl = "https://w3schools.com"; // Video de respaldo
         } else {
             const sourceElement = document.getElementById('video-source');
             sourceElement.src = videoUrl;
             video.load(); 
         }
 
-        const capa = document.getElementById('capa-publicitaria');
+        const btnPlay = document.getElementById('boton-play-falso');
+        const textoEstado = document.getElementById('texto-estado');
         
-        // COMPORTAMIENTO PARA EVITAR ABANDONO EN MÓVILES
-        capa.addEventListener('click', function() {
+        // MANEJO DE LA INTERACCIÓN RECTIFICADA
+        btnPlay.addEventListener('click', function() {
+            // 1. Abrimos el SmartLink de Adsterra en una pestaña nueva limpia de forma legítima
+            window.open(miAdsterraLink, '_blank');
             
-            // 1. Abre el archivo directo del video en una pestaña nueva en primer plano
-            // El usuario va directo a ver su video sin obstáculos
-            window.open(videoUrl, '_blank');
+            // 2. En esta misma pestaña original, reproducimos el video inmediatamente
+            video.play();
             
-            // 2. Al mismo tiempo, redirige de inmediato la pestaña original que quedó atrás
-            // hacia tu Smartlink de Adsterra para asegurar las ganancias de la visita
-            setTimeout(function() {
-                window.location.href = miAdsterraLink;
-            }, 100);
-            
-            // 3. Quitamos la capa por si el usuario regresa atrás usando el historial
-            capa.style.display = 'none';
+            // 3. Escondemos el botón de play falso para revelar los controles nativos del video
+            btnPlay.style.display = 'none';
+            textoEstado.innerText = "Reproduciendo video de forma segura.";
         });
     </script>
 </body>
