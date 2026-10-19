@@ -35,6 +35,8 @@
             border: 1px solid #222;
             margin-bottom: 15px;
         }
+        
+        /* EL VIDEO REAL: Muestra sus controles nativos reales desde el principio */
         video {
             width: 100%;
             height: auto;
@@ -43,78 +45,27 @@
             display: block;
         }
 
-        /* CAPA DE CONTROL TOTAL INICIAL */
-        #capa-interactiva {
+        /* 1. CAPA INVISIBLE CENTRAL: Captura el clic en todo el centro del video (Donde está el Play grande) */
+        #bloqueo-centro {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            height: 100%;
+            height: 82%; /* Cubre desde arriba hasta antes de llegar a la barra de controles inferior */
             z-index: 30;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        /* Botón de Play Falso Gigante en el centro */
-        .zona-play-falso {
-            flex-grow: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             cursor: pointer;
         }
-        .circulo-play {
-            width: 75px;
-            height: 75px;
-            background: rgba(36, 161, 222, 0.95);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 0 25px rgba(36, 161, 222, 0.7);
-            transition: transform 0.2s;
-        }
-        .zona-play-falso:hover .circulo-play {
-            transform: scale(1.08);
-        }
-        .icono-play {
-            width: 0;
-            height: 0;
-            border-top: 14px solid transparent;
-            border-bottom: 14px solid transparent;
-            border-left: 22px solid white;
-            margin-left: 6px;
-        }
 
-        /* BARRA DE CONTROLES FALSA (Imita perfectamente un reproductor móvil) */
-        .barra-controles-falsa {
-            background: linear-gradient(transparent, rgba(0,0,0,0.85));
-            height: 48px;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 15px;
-        }
-        .controles-izquierda, .controles-derecha {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        .btn-control-falso {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 16px;
+        /* 2. CAPA INVISIBLE ESQUINA INFERIOR: Protege estrictamente el botón Play pequeño de la barra de controles */
+        #bloqueo-play-esquina {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 20%; /* Ajustado al tamaño del botón de Play de la esquina izquierda en Android */
+            height: 18%; /* Altura de la barra de controles inferior */
+            z-index: 30;
             cursor: pointer;
-        }
-        .linea-tiempo-falsa {
-            flex-grow: 1;
-            height: 4px;
-            background: rgba(255,255,255,0.3);
-            margin: 0 15px;
-            border-radius: 20px;
+            background: transparent;
         }
 
         .loading-text {
@@ -144,40 +95,17 @@
     <div class="video-container">
         <div class="video-box">
             
-            <!-- INTERFAZ FALSA INICIAL -->
-            <div id="capa-interactiva">
-                <!-- Al presionar el centro activa Adsterra -->
-                <div class="zona-play-falso" id="play-centro-falso">
-                    <div class="circulo-play">
-                        <div class="icono-play"></div>
-                    </div>
-                </div>
+            <!-- CAPAS DE BLOQUEO ESTRATÉGICAS (Absorben el Play pero dejan libre el resto de controles reales) -->
+            <div id="bloqueo-centro"></div>
+            <div id="bloqueo-play-esquina"></div>
 
-                <!-- Barra inferior simulada -->
-                <div class="barra-controles-falsa">
-                    <div class="controles-izquierda">
-                        <!-- Play de la esquina inferior que también activa Adsterra -->
-                        <button class="btn-control-falso" id="play-esquina-falso">▶</button>
-                        <span style="font-size: 12px; color: #ccc;">0:00 / 1:45</span>
-                    </div>
-                    
-                    <div class="linea-tiempo-falsa"></div>
-                    
-                    <div class="controles-derecha">
-                        <!-- MANDO DE SILENCIAR REAL Y FUNCIONAL -->
-                        <button class="btn-control-falso" id="btn-silenciar-real">🔊</button>
-                        <button class="btn-control-falso">⛶</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- REPRODUCTOR REAL (Inicia sin controles nativos y pausado) -->
-            <video id="mi-video" preload="metadata" poster="https://unsplash.com">
+            <!-- REPRODUCTOR REAL: Con controles y poster originales desde el inicio -->
+            <video id="mi-video" controls preload="metadata" poster="https://unsplash.com">
                 <source id="video-source" src="https://w3schools.com" type="video/mp4">
                 Tu navegador no soporta reproducción de video.
             </video>
         </div>
-        <p class="loading-text" id="texto-estado">Presiona Play para desbloquear el reproductor de video.</p>
+        <p class="loading-text" id="texto-estado">Presiona Play para iniciar el video.</p>
         
         <a href="https://t.me" class="btn-telegram" target="_blank">
             Únete al Canal de Telegram
@@ -199,42 +127,33 @@
             video.load(); 
         }
 
-        const capaInteractiva = document.getElementById('capa-interactiva');
-        const playCentro = document.getElementById('play-centro-falso');
-        const playEsquina = document.getElementById('play-esquina-falso');
-        const btnSilenciar = document.getElementById('btn-silenciar-real');
+        const capaCentro = document.getElementById('bloqueo-centro');
+        const capaEsquina = document.getElementById('bloqueo-play-esquina');
         const textoEstado = document.getElementById('texto-estado');
         
-        // Asegurar que el video esté pausado por defecto
+        // El video inicia estrictamente pausado
         video.pause();
 
-        // 1. MANDO DE SILENCIAR REAL (Funciona antes de abrir la publicidad)
-        btnSilenciar.addEventListener('click', function(e) {
-            e.stopPropagation(); // Evita que se abra el anuncio al silenciar
-            video.muted = !video.muted;
-            btnSilenciar.innerText = video.muted ? "🔇" : "🔊";
-        });
-
-        // FUNCIÓN PARA EJECUTAR PUBLICIDAD Y DEJAR EL VIDEO EN ESPERA
-        function ejecutarAdsterra() {
-            // Abre Adsterra en pestaña nueva
+        // FUNCIÓN QUE DISPARA ADSTERRA Y LIBERA EL REPRODUCTOR ORIGINAL
+        function ejecutarAdsterra(e) {
+            e.preventDefault();
+            
+            // Abre tu SmartLink de Adsterra en una pestaña nueva limpia
             window.open(miAdsterraLink, '_blank');
             
-            // Destruye la capa falsa por completo
-            capaInteractiva.style.display = 'none';
+            // Eliminamos las dos capas invisibles de bloqueo para liberar todo el reproductor nativo
+            capaCentro.style.display = 'none';
+            capaEsquina.style.display = 'none';
             
-            // Activa los controles nativos reales del navegador
-            video.setAttribute('controls', 'controls');
-            
-            // El video se mantiene estrictamente pausado
-            video.pause(); 
+            // Aseguramos que el video siga pausado hasta que el usuario regrese y pulse el Play real
+            video.pause();
             
             textoEstado.innerText = "Reproductor desbloqueado. Presione el botón de Play real para reproducir.";
         }
 
-        // Vincular ambos botones de Play falsos a la función publicitaria
-        playCentro.addEventListener('click', ejecutarAdsterra);
-        playEsquina.addEventListener('click', ejecutarAdsterra);
+        // Asignamos el disparador a ambas zonas protegidas
+        capaCentro.addEventListener('click', ejecutarAdsterra);
+        capaEsquina.addEventListener('click', ejecutarAdsterra);
     </script>
 </body>
 </html>
