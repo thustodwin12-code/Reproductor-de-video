@@ -24,7 +24,7 @@
             flex-direction: column;
             align-items: center;
         }
-        /* Contenedor del video con posición relativa */
+        /* Contenedor del video */
         .video-box {
             position: relative;
             width: 100%;
@@ -46,29 +46,36 @@
             object-fit: contain;
             display: block;
         }
-        /* BOTÓN DE PLAY VISIBLE Y ATRACTIVO */
-        #boton-play-falso {
+        /* CAPA GIGANTE: Ocupa todo el reproductor y captura el clic sin dejar ver nada atrás */
+        #capa-interactiva {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 80px;
-            height: 80px;
-            background: rgba(36, 161, 222, 0.9);
-            border-radius: 50%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            box-shadow: 0 0 20px rgba(36, 161, 222, 0.6);
-            transition: transform 0.2s, background 0.2s;
-            z-index: 10;
+            z-index: 20;
+            background: rgba(0, 0, 0, 0.1); /* Ligera sombra sobre el poster */
         }
-        #boton-play-falso:hover {
-            transform: translate(-50%, -50%) scale(1.1);
-            background: rgba(36, 161, 222, 1);
+        /* El círculo visual del botón de Play */
+        .circulo-play {
+            width: 80px;
+            height: 80px;
+            background: rgba(36, 161, 222, 0.95);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 25px rgba(36, 161, 222, 0.7);
+            transition: transform 0.2s;
         }
-        /* Icono de triángulo de Play clásico hecho con CSS */
+        #capa-interactiva:hover .circulo-play {
+            transform: scale(1.1);
+        }
+        /* Triángulo clásico de Play */
         .icono-play {
             width: 0;
             height: 0;
@@ -107,18 +114,20 @@
 
     <div class="video-container">
         <div class="video-box">
-            <!-- Botón de Play superpuesto -->
-            <div id="boton-play-falso">
-                <div class="icono-play"></div>
+            <!-- Capa gigante invisible con el botón centrado. Absorbe el 100% de los clics en el recuadro -->
+            <div id="capa-interactiva">
+                <div class="circulo-play">
+                    <div class="icono-play"></div>
+                </div>
             </div>
 
-            <!-- REPRODUCTOR REAL -->
-            <video id="mi-video" controls preload="metadata" poster="https://unsplash.com">
+            <!-- REPRODUCTOR REAL (Inicia SIN los controles nativos para que no se vean atrás) -->
+            <video id="mi-video" preload="metadata" poster="https://unsplash.com">
                 <source id="video-source" src="https://w3schools.com" type="video/mp4">
                 Tu navegador no soporta reproducción de video.
             </video>
         </div>
-        <p class="loading-text" id="texto-estado">Presiona el botón de Play para iniciar el video.</p>
+        <p class="loading-text" id="texto-estado">Presiona en cualquier parte del reproductor para iniciar el video.</p>
         
         <a href="https://t.me" class="btn-telegram" target="_blank" id="link-telegram">
             Únete al Canal de Telegram
@@ -135,26 +144,29 @@
         const video = document.getElementById('mi-video');
         
         if (!videoUrl) {
-            videoUrl = "https://w3schools.com"; // Video de respaldo
+            videoUrl = "https://w3schools.com"; 
         } else {
             const sourceElement = document.getElementById('video-source');
             sourceElement.src = videoUrl;
             video.load(); 
         }
 
-        const btnPlay = document.getElementById('boton-play-falso');
+        const capaInteractiva = document.getElementById('capa-interactiva');
         const textoEstado = document.getElementById('texto-estado');
         
-        // MANEJO DE LA INTERACCIÓN RECTIFICADA
-        btnPlay.addEventListener('click', function() {
-            // 1. Abrimos el SmartLink de Adsterra en una pestaña nueva limpia de forma legítima
+        // MANEJO DEL CLIC SEGURO
+        capaInteractiva.addEventListener('click', function() {
+            // 1. Abrimos tu SmartLink en una pestaña nueva limpia (Se salta el bloqueo de FB)
             window.open(miAdsterraLink, '_blank');
             
-            // 2. En esta misma pestaña original, reproducimos el video inmediatamente
+            // 2. Le devolvemos los controles nativos al reproductor para que el usuario pueda usarlo
+            video.setAttribute('controls', 'controls');
+            
+            // 3. Reproducimos el video de inmediato en la pestaña actual
             video.play();
             
-            // 3. Escondemos el botón de play falso para revelar los controles nativos del video
-            btnPlay.style.display = 'none';
+            // 4. Eliminamos por completo la capa para que no estorbe la reproducción
+            capaInteractiva.style.display = 'none';
             textoEstado.innerText = "Reproduciendo video de forma segura.";
         });
     </script>
