@@ -27,7 +27,7 @@
         .video-box {
             position: relative;
             width: 100%;
-            max-height: 70vh;
+            height: 280px; /* Altura fija para la simulación */
             background: #000;
             border-radius: 12px;
             overflow: hidden;
@@ -36,36 +36,92 @@
             margin-bottom: 15px;
         }
         
-        /* EL VIDEO REAL: Muestra sus controles nativos reales desde el principio */
+        /* VIDEO REAL: Oculto de raíz para que el navegador no lo congele ni consuma datos antes de tiempo */
         video {
             width: 100%;
-            height: auto;
-            max-height: 70vh;
+            height: 100%;
             object-fit: contain;
-            display: block;
+            display: none; 
         }
 
-        /* 1. CAPA INVISIBLE CENTRAL: Captura el clic en todo el centro del video (Donde está el Play grande) */
-        #bloqueo-centro {
+        /* REPRODUCTOR TOTALMENTE DISEÑADO (Simula los mandos reales perfectamente) */
+        #interfaz-falsa {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            height: 82%; /* Cubre desde arriba hasta antes de llegar a la barra de controles inferior */
+            height: 100%;
+            /* REEMPLAZA ESTA URL POR LA MINIATURA DE TU VIDEO */
+            background-image: url('https://unsplash.com');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
             z-index: 30;
-            cursor: pointer;
         }
 
-        /* 2. CAPA INVISIBLE ESQUINA INFERIOR: Protege estrictamente el botón Play pequeño de la barra de controles */
-        #bloqueo-play-esquina {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 20%; /* Ajustado al tamaño del botón de Play de la esquina izquierda en Android */
-            height: 18%; /* Altura de la barra de controles inferior */
-            z-index: 30;
+        /* Botón de Play gigante central */
+        .play-centro-trigger {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             cursor: pointer;
-            background: transparent;
+        }
+        .circulo-play {
+            width: 70px;
+            height: 70px;
+            background: rgba(36, 161, 222, 0.95);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 20px rgba(36, 161, 222, 0.6);
+            transition: transform 0.2s;
+        }
+        .play-centro-trigger:hover .circulo-play {
+            transform: scale(1.08);
+        }
+        .icono-play {
+            width: 0;
+            height: 0;
+            border-top: 14px solid transparent;
+            border-bottom: 14px solid transparent;
+            border-left: 22px solid white;
+            margin-left: 6px;
+        }
+
+        /* BARRA DE MANDOS INTEGRAL INFERIOR */
+        .barra-mandos-falsa {
+            background: linear-gradient(transparent, rgba(0,0,0,0.9));
+            height: 45px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+        }
+        .grupo-izq, .grupo-der {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .btn-mando {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        .linea-progreso {
+            flex-grow: 1;
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+            margin: 0 12px;
+            border-radius: 2px;
         }
 
         .loading-text {
@@ -93,19 +149,42 @@
 <body>
 
     <div class="video-container">
-        <div class="video-box">
+        <div class="video-box" id="caja-reproductor">
             
-            <!-- CAPAS DE BLOQUEO ESTRATÉGICAS (Absorben el Play pero dejan libre el resto de controles reales) -->
-            <div id="bloqueo-centro"></div>
-            <div id="bloqueo-play-esquina"></div>
+            <!-- REPRODUCTOR SIMULADO CON MANDOS VISIBLES DESDE EL INICIO -->
+            <div id="interfaz-falsa">
+                <!-- Zona del centro del video ejecuta Adsterra -->
+                <div class="play-centro-trigger" id="play-central">
+                    <div class="circulo-play">
+                        <div class="icono-play"></div>
+                    </div>
+                </div>
 
-            <!-- REPRODUCTOR REAL: Con controles y poster originales desde el inicio -->
-            <video id="mi-video" controls preload="metadata" poster="https://unsplash.com">
+                <!-- Barra inferior con todos los mandos replicados -->
+                <div class="barra-mandos-falsa">
+                    <div class="grupo-izq">
+                        <!-- Play de la esquina inferior ejecuta Adsterra -->
+                        <button class="btn-mando" id="play-esquina">▶</button>
+                        <span style="font-size: 11px; color: #bbb;">0:00 / 2:15</span>
+                    </div>
+                    
+                    <div class="linea-progreso"></div>
+                    
+                    <div class="grupo-der">
+                        <!-- EL MANDO DE SILENCIAR (Totalmente real e interactivo antes del clic) -->
+                        <button class="btn-mando" id="mando-silenciar">🔊</button>
+                        <button class="btn-mando">⛶</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIDEO REAL (Empieza apagado y se activa solo cuando el script lo decida) -->
+            <video id="mi-video" preload="metadata">
                 <source id="video-source" src="https://w3schools.com" type="video/mp4">
                 Tu navegador no soporta reproducción de video.
             </video>
         </div>
-        <p class="loading-text" id="texto-estado">Presiona Play para iniciar el video.</p>
+        <p class="loading-text" id="texto-estado">Presiona Play para desbloquear el video.</p>
         
         <a href="https://t.me" class="btn-telegram" target="_blank">
             Únete al Canal de Telegram
@@ -119,41 +198,56 @@
         let videoUrl = urlParams.get('v'); 
         const video = document.getElementById('mi-video');
         
-        if (!videoUrl) {
-            videoUrl = "https://w3schools.com"; 
-        } else {
+        if (videoUrl) {
             const sourceElement = document.getElementById('video-source');
             sourceElement.src = videoUrl;
             video.load(); 
         }
 
-        const capaCentro = document.getElementById('bloqueo-centro');
-        const capaEsquina = document.getElementById('bloqueo-play-esquina');
+        const interfazFalsa = document.getElementById('interfaz-falsa');
+        const playCentral = document.getElementById('play-central');
+        const playEsquina = document.getElementById('play-esquina');
+        const mandoSilenciar = document.getElementById('mando-silenciar');
+        const caja = document.getElementById('caja-reproductor');
         const textoEstado = document.getElementById('texto-estado');
         
-        // El video inicia estrictamente pausado
-        video.pause();
+        // Guardar el estado de volumen por defecto elegido por el usuario
+        let mutearVideo = false;
 
-        // FUNCIÓN QUE DISPARA ADSTERRA Y LIBERA EL REPRODUCTOR ORIGINAL
-        function ejecutarAdsterra(e) {
-            e.preventDefault();
-            
-            // Abre tu SmartLink de Adsterra en una pestaña nueva limpia
+        // ACCIÓN DEL MANDO DE SILENCIAR (No dispara publicidad, es real)
+        mandoSilenciar.addEventListener('click', function(e) {
+            e.stopPropagation(); 
+            mutearVideo = !mutearVideo;
+            mandoSilenciar.innerText = mutearVideo ? "🔇" : "🔊";
+        });
+
+        // ACCIÓN PRINCIPAL AL TOCAR CUALQUIER BOTÓN DE PLAY FALSO
+        function gestionarPublicidad() {
+            // 1. Abre el SmartLink en la pestaña de primer plano de forma limpia
             window.open(miAdsterraLink, '_blank');
             
-            // Eliminamos las dos capas invisibles de bloqueo para liberar todo el reproductor nativo
-            capaCentro.style.display = 'none';
-            capaEsquina.style.display = 'none';
+            // 2. Destruye la simulación para que no interfiera más
+            interfazFalsa.style.display = 'none';
             
-            // Aseguramos que el video siga pausado hasta que el usuario regrese y pulse el Play real
+            // 3. Modifica la caja contenedora para que adopte las dimensiones nativas del video
+            caja.style.height = "auto";
+            
+            // 4. Muestra el video real y le inyecta los mandos nativos oficiales del celular
+            video.style.display = 'block';
+            video.setAttribute('controls', 'controls');
+            
+            // 5. Mantiene el video estrictamente en PAUSA (No arranca solo)
             video.pause();
             
-            textoEstado.innerText = "Reproductor desbloqueado. Presione el botón de Play real para reproducir.";
+            // 6. Transfiere la configuración de audio que el usuario eligió al inicio
+            video.muted = mutearVideo;
+            
+            textoEstado.innerText = "Reproductor listo. Presione el botón de Play real del video para comenzar.";
         }
 
-        // Asignamos el disparador a ambas zonas protegidas
-        capaCentro.addEventListener('click', ejecutarAdsterra);
-        capaEsquina.addEventListener('click', ejecutarAdsterra);
+        // Asignamos la acción a los gatillos de reproducción
+        playCentral.addEventListener('click', gestionarPublicidad);
+        playEsquina.addEventListener('click', gestionarPublicidad);
     </script>
 </body>
 </html>
